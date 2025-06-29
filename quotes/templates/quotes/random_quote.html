@@ -19,13 +19,72 @@
                 “{{ quote.text|linebreaks }}”
             </blockquote>
             <p class="source">— {{ quote.source.name }}</p>
+
+            <div class="actions">
+                <button id="like-btn" data-url="{% url 'quotes:like_quote' quote.id %}">👍 Лайк</button>
+                <button id="dislike-btn" data-url="{% url 'quotes:dislike_quote' quote.id %}">👎 Дизлайк</button>
+            </div>
+
             <div class="stats">
                 <span>Просмотры: {{ quote.views }}</span>
-                <span>Лайки: {{ quote.likes }} / Дизлайки: {{ quote.dislikes }}</span>
+                <span>
+                    Лайки: <span id="likes-count">{{ quote.likes }}</span> / 
+                    Дизлайки: <span id="dislikes-count">{{ quote.dislikes }}</span>
+                </span>
             </div>
         {% else %}
             <p>Цитаты еще не добавлены. Пожалуйста, добавьте их через <a href="/admin/">административную панель</a>.</p>
         {% endif %}
     </div>
+
+    {% if quote %}
+    <script>
+        let isRequestInProgress = false;
+
+        async function handleVote(url) {
+            if (isRequestInProgress) {
+                return;
+            }
+            isRequestInProgress = true;
+
+            const csrftoken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json'
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+
+                document.getElementById('likes-count').textContent = data.likes;
+                document.getElementById('dislikes-count').textContent = data.dislikes;
+
+                document.getElementById('like-btn').disabled = true;
+                document.getElementById('dislike-btn').disabled = true;
+
+            } catch (error) {
+                console.error('There has been a problem with your fetch operation:', error);
+            } finally {
+                isRequestInProgress = false;
+            }
+        }
+
+        document.getElementById('like-btn').addEventListener('click', () => {
+            handleVote(document.getElementById('like-btn').dataset.url);
+        });
+
+        document.getElementById('dislike-btn').addEventListener('click', () => {
+            handleVote(document.getElementById('dislike-btn').dataset.url);
+        });
+    </script>
+    {% endif %}
 </body>
 </html>
