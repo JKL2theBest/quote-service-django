@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Топ-10 цитат</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; background-color: #f4f4f4; color: #333; }
+        h1 { text-align: center; }
+        .quote-list-item { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px 25px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        blockquote { font-size: 1.2em; margin: 0; }
+        .source { text-align: right; font-style: italic; color: #555; margin-top: 5px; }
+        .stats { margin-top: 10px; color: #777; font-size: 0.9em; }
+        .nav-link { display: block; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Топ-10 самых популярных цитат</h1>
+
+    {% if quotes %}
+        <ol>
+            {% for quote in quotes %}
+            <li class="quote-list-item">
+                <blockquote>
+                    “{{ quote.text|linebreaks }}”
+                </blockquote>
+                <p class="source">— {{ quote.source.name }}</p>
+                <div class="stats">
+                    👍 Лайки: {{ quote.likes }} | 👎 Дизлайки: {{ quote.dislikes }} | 👀 Просмотры: {{ quote.views }}
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+    {% else %}
+        <p>Пока нет ни одной цитаты с лайками.</p>
+    {% endif %}
+
+    <a href="{% url 'quotes:random_quote' %}" class="nav-link">Вернуться к случайной цитате</a>
+</body>
+</html>

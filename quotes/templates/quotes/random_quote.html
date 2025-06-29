@@ -36,7 +36,9 @@
             <p>Цитаты еще не добавлены. Пожалуйста, добавьте их через <a href="/admin/">административную панель</a>.</p>
         {% endif %}
     </div>
-
+    
+    <a href="{% url 'quotes:top_quotes' %}" style="display: block; text-align: center; margin-top: 20px;">Посмотреть топ-10 цитат</a>
+    
     {% if quote %}
     <script>
         let isRequestInProgress = false;

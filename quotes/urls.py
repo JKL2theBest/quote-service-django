@@ -1,10 +1,11 @@
 from django.urls import path
-from .views import random_quote_view, like_quote, dislike_quote
+from .views import random_quote_view, like_quote, dislike_quote, top_quotes_view
 
 app_name = 'quotes'
 
 urlpatterns = [
     path('', random_quote_view, name='random_quote'),
+    path('top/', top_quotes_view, name='top_quotes'),
     path('quote/<int:quote_id>/like/', like_quote, name='like_quote'),
     path('quote/<int:quote_id>/dislike/', dislike_quote, name='dislike_quote'),
 ]

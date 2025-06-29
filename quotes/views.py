@@ -58,3 +58,16 @@ def dislike_quote(request, quote_id):
         
     except Quote.DoesNotExist:
         raise Http404("Quote not found")
+
+def top_quotes_view(request):
+    """
+    Отображение 10 самых популярных цитат (по лайкам).
+    """
+    top_quotes = Quote.objects.select_related('source').order_by('-likes')[:10]
+    
+    context = {
+        'quotes': top_quotes,
+    }
+    
+    return render(request, 'quotes/top_quotes.html', context)
+
