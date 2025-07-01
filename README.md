@@ -22,7 +22,7 @@
 *   **Backend:** Python 3, Django
 *   **Frontend:** HTML5, CSS3 (Flexbox), JavaScript (Fetch API)
 *   **База данных:** SQLite
-*   **Тестирование:** `coverage`
+*   **Тестирование:** `unittest`, `coverage`
 *   **Развертывание:** PythonAnywhere
 
 ## Локальный запуск
