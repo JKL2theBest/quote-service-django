@@ -1,10 +1,11 @@
 from django.shortcuts import render
 import random
-from django.db.models import F
-from .models import Quote
+from django.db.models import F, Count, Sum
+from .models import Quote, Source
 from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import ensure_csrf_cookie # <-- 1. Импортируем
+from django.views.decorators.csrf import ensure_csrf_cookie
+
 
 @ensure_csrf_cookie
 def random_quote_view(request):
@@ -30,7 +31,9 @@ def random_quote_view(request):
 @require_POST
 def like_quote(request, quote_id):
     """Обработка лайка."""
-    updated_quote = Quote.objects.filter(pk=quote_id).update_and_get(likes=F("likes") + 1)
+    updated_quote = Quote.objects.filter(pk=quote_id).update_and_get(
+        likes=F("likes") + 1
+    )
 
     if updated_quote is None:
         raise Http404("Quote not found")
@@ -43,7 +46,9 @@ def like_quote(request, quote_id):
 @require_POST
 def dislike_quote(request, quote_id):
     """Обработка дизлайка."""
-    updated_quote = Quote.objects.filter(pk=quote_id).update_and_get(dislikes=F("dislikes") + 1)
+    updated_quote = Quote.objects.filter(pk=quote_id).update_and_get(
+        dislikes=F("dislikes") + 1
+    )
 
     if updated_quote is None:
         raise Http404("Quote not found")
@@ -53,14 +58,27 @@ def dislike_quote(request, quote_id):
     )
 
 
-def top_quotes_view(request):
+def dashboard_view(request):
     """
-    Отображение 10 самых популярных цитат (по лайкам).
+    Отображение дашборда со статистикой и топами цитат.
     """
-    top_quotes = Quote.objects.select_related("source").order_by("-likes")[:10]
+    kpi_stats = Quote.objects.aggregate(
+        total_quotes=Count("id"), total_likes=Sum("likes"), total_views=Sum("views")
+    )
+    total_sources = Source.objects.count()
+
+    top_by_likes = Quote.objects.select_related("source").order_by("-likes")[:10]
+    top_by_views = Quote.objects.select_related("source").order_by("-views")[:10]
+    most_recent = Quote.objects.select_related("source").order_by("-created_at")[:5]
 
     context = {
-        "quotes": top_quotes,
+        "total_quotes": kpi_stats.get("total_quotes", 0),
+        "total_likes": kpi_stats.get("total_likes", 0) or 0,
+        "total_views": kpi_stats.get("total_views", 0) or 0,
+        "total_sources": total_sources,
+        "top_by_likes": top_by_likes,
+        "top_by_views": top_by_views,
+        "most_recent": most_recent,
     }
 
-    return render(request, "quotes/top_quotes.html", context)
+    return render(request, "quotes/dashboard.html", context)

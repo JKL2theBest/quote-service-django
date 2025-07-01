@@ -208,3 +208,54 @@ h1 {
 .nav-link:hover {
     text-decoration: underline;
 }
+
+/* Стили для дашборда */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.kpi-card {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.kpi-value {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.kpi-label {
+    font-size: 0.9rem;
+    color: var(--secondary-text-color);
+    margin-top: 0.5rem;
+}
+
+.dashboard-lists {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.list-column h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-top: 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+/* Изменим стили для .quote-list-item, чтобы они лучше смотрелись в колонках */
+.quote-list-item blockquote {
+    font-size: 1rem;
+    line-height: 1.5;
+}

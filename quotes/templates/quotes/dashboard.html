@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Дашборд статистики{% endblock %}
+
+{% block content %}
+    <h1>Статистика цитат</h1>
+
+    <section class="kpi-grid">
+        <div class="kpi-card">
+            <span class="kpi-value">{{ total_quotes }}</span>
+            <span class="kpi-label">Всего цитат</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-value">{{ total_sources }}</span>
+            <span class="kpi-label">Всего источников</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-value">{{ total_likes }}</span>
+            <span class="kpi-label">Всего лайков</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-value">{{ total_views }}</span>
+            <span class="kpi-label">Всего просмотров</span>
+        </div>
+    </section>
+
+    <section class="dashboard-lists">
+        <div class="list-column">
+            <h2>Топ-10 по лайкам</h2>
+            {% if top_by_likes %}
+                <ol class="quote-list">
+                    {% for quote in top_by_likes %}
+                        {% include 'quotes/includes/quote_list_item.html' %}
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <p>Цитат с лайками еще нет.</p>
+            {% endif %}
+        </div>
+        <div class="list-column">
+            <h2>Топ-10 по просмотрам</h2>
+            {% if top_by_views %}
+                <ol class="quote-list">
+                    {% for quote in top_by_views %}
+                        {% include 'quotes/includes/quote_list_item.html' %}
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <p>Просмотренных цитат еще нет.</p>
+            {% endif %}
+        </div>
+        <div class="list-column">
+            <h2>5 последних добавленных</h2>
+             {% if most_recent %}
+                <ol class="quote-list">
+                    {% for quote in most_recent %}
+                        {% include 'quotes/includes/quote_list_item.html' with hide_rank=True %}
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <p>Цитаты еще не добавлены.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <a href="{% url 'quotes:random_quote' %}" class="nav-link">Вернуться к случайной цитате</a>
+{% endblock %}

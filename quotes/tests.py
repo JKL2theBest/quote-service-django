@@ -23,17 +23,19 @@ class QuoteModelTest(TestCase):
         quote = Quote.objects.create(
             text="Это новая тестовая цитата, которая еще не существует.",
             source=self.source,
-            weight=150
+            weight=150,
         )
         self.assertEqual(quote.source.name, self.source_name)
         self.assertEqual(Quote.objects.count(), initial_quote_count + 1)
-        self.assertEqual(str(quote), '"Это новая тестовая цитата, которая еще не существу..."')
+        self.assertEqual(
+            str(quote), '"Это новая тестовая цитата, которая еще не существу..."'
+        )
 
     def test_max_quotes_per_source_validation(self):
         """Тест: не более 3 цитат на источник."""
         for i in range(3):
             Quote.objects.create(text=f"Цитата номер {i}", source=self.source)
-        
+
         self.assertEqual(self.source.quotes.count(), 3)
         with self.assertRaises(ValidationError):
             Quote(text="Четвертая лишняя цитата", source=self.source).save()
@@ -45,116 +47,165 @@ class QuoteModelTest(TestCase):
         with self.assertRaises(ValidationError):
             Quote.objects.create(text="Уникальный текст", source=self.source)
 
+
 class QuoteViewTest(TestCase):
 
     def setUp(self):
+        """
+        Настройка тестовых данных.
+        """
         self.client = Client()
-        self.source = Source.objects.create(name="Тестовый источник")
-        self.quote = Quote.objects.create(text="Тестовый текст", source=self.source, likes=5)
+        self.source = Source.objects.create(name="Тестовый источник для API")
+        self.quote = Quote.objects.create(
+            text="Тестовый текст для API", source=self.source, likes=5
+        )
 
     def test_random_quote_view(self):
-        """Тест главной страницы."""
-        response = self.client.get(reverse('quotes:random_quote'))
+        """Тест главной страницы с данными."""
+        response = self.client.get(reverse("quotes:random_quote"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'quotes/random_quote.html')
+        self.assertTemplateUsed(response, "quotes/random_quote.html")
 
-        self.assertIn('quote', response.context)
-        quote_in_context = response.context['quote']
+        self.assertIn("quote", response.context)
+        quote_in_context = response.context["quote"]
         self.assertIsInstance(quote_in_context, Quote)
 
         self.assertContains(response, quote_in_context.text)
 
     def test_random_quote_view_no_quotes(self):
-        """Тест главной страницы, когда нет цитат."""
+        """Тест главной страницы, когда в БД нет цитат."""
         Quote.objects.all().delete()
-        response = self.client.get(reverse('quotes:random_quote'))
+        Source.objects.all().delete()
+
+        response = self.client.get(reverse("quotes:random_quote"))
         self.assertEqual(response.status_code, 200)
+
         self.assertContains(response, "Цитаты еще не добавлены")
 
-    def test_top_quotes_view(self):
-        """Тест страницы с топом цитат."""
-        response = self.client.get(reverse('quotes:top_quotes'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'quotes/top_quotes.html')
-        self.assertContains(response, "Тестовый текст")
+        self.assertIn("quote", response.context)
+        self.assertIsNone(response.context["quote"])
 
-    def test_top_quotes_view_no_quotes(self):
-        """Тест страницы топа, когда нет цитат."""
-        Quote.objects.all().delete()
-        response = self.client.get(reverse('quotes:top_quotes'))
+    def test_dashboard_view(self):
+        """Тест страницы дашборда со статистикой."""
+        self.assertGreater(Quote.objects.count(), 1)
+
+        url = reverse("quotes:dashboard")
+        response = self.client.get(url)
+
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Пока нет ни одной цитаты с лайками.")
+        self.assertTemplateUsed(response, "quotes/dashboard.html")
+
+        expected_keys = [
+            "total_quotes",
+            "total_likes",
+            "total_views",
+            "total_sources",
+            "top_by_likes",
+            "top_by_views",
+            "most_recent",
+        ]
+        for key in expected_keys:
+            self.assertIn(key, response.context)
+
+        self.assertEqual(response.context["total_quotes"], Quote.objects.count())
+        self.assertEqual(response.context["total_sources"], Source.objects.count())
+
+        self.assertContains(response, "Топ-10 по просмотрам")
+        self.assertContains(response, "5 последних добавленных")
+        self.assertContains(response, "Всего цитат")
+
+    def test_dashboard_view_no_quotes(self):
+        """Тест страницы дашборда, когда в БД нет цитат."""
+        Quote.objects.all().delete()
+        Source.objects.all().delete()
+
+        url = reverse("quotes:dashboard")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["total_quotes"], 0)
+        self.assertEqual(response.context["total_likes"], 0)
+        self.assertEqual(response.context["total_views"], 0)
+        self.assertContains(response, "Цитат с лайками еще нет.")
 
     def test_like_quote_api(self):
         """Тест API для лайков."""
-        self.assertEqual(self.quote.likes, 5)
-        url = reverse('quotes:like_quote', args=[self.quote.id])
-        response = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        
+        initial_likes = self.quote.likes
+        url = reverse("quotes:like_quote", args=[self.quote.id])
+        response = self.client.post(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
         self.assertEqual(response.status_code, 200)
         self.quote.refresh_from_db()
-        self.assertEqual(self.quote.likes, 6)
-        self.assertEqual(response.json()['likes'], 6)
+        self.assertEqual(self.quote.likes, initial_likes + 1)
+        self.assertEqual(response.json()["likes"], initial_likes + 1)
 
     def test_dislike_quote_api(self):
         """Тест API для дизлайков."""
-        self.assertEqual(self.quote.dislikes, 0)
-        url = reverse('quotes:dislike_quote', args=[self.quote.id])
-        response = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        initial_dislikes = self.quote.dislikes
+        url = reverse("quotes:dislike_quote", args=[self.quote.id])
+        response = self.client.post(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
         self.assertEqual(response.status_code, 200)
         self.quote.refresh_from_db()
-        self.assertEqual(self.quote.dislikes, 1)
-        self.assertEqual(response.json()['dislikes'], 1)
+        self.assertEqual(self.quote.dislikes, initial_dislikes + 1)
+        self.assertEqual(response.json()["dislikes"], initial_dislikes + 1)
 
     def test_vote_api_non_existent_quote(self):
         """Тест голосования за несуществующую цитату."""
-        like_url = reverse('quotes:like_quote', args=[999])
-        dislike_url = reverse('quotes:dislike_quote', args=[999])
-        
-        response_like = self.client.post(like_url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        non_existent_id = 9999
+        like_url = reverse("quotes:like_quote", args=[non_existent_id])
+        dislike_url = reverse("quotes:dislike_quote", args=[non_existent_id])
+
+        response_like = self.client.post(
+            like_url, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
         self.assertEqual(response_like.status_code, 404)
-        
-        response_dislike = self.client.post(dislike_url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        response_dislike = self.client.post(
+            dislike_url, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
         self.assertEqual(response_dislike.status_code, 404)
-        
+
     def test_vote_api_get_request_not_allowed(self):
         """Тест: GET запросы к API голосования запрещены."""
-        url = reverse('quotes:like_quote', args=[self.quote.id])
+        url = reverse("quotes:like_quote", args=[self.quote.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 405)
+
 
 class AdminPanelTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.admin_user = User.objects.create_superuser('admin', 'admin@test.com', 'password')
-        self.client.login(username='admin', password='password')
-        
+        self.admin_user = User.objects.create_superuser(
+            "admin", "admin@test.com", "password"
+        )
+        self.client.login(username="admin", password="password")
+
         self.source = Source.objects.create(name="Источник для админки")
         self.quote = Quote.objects.create(text="Цитата для админки", source=self.source)
 
     def test_source_admin_changelist(self):
         """Тест страницы списка источников в админке."""
-        url = reverse('admin:quotes_source_changelist')
+        url = reverse("admin:quotes_source_changelist")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.source.name)
-        self.assertContains(response, '1')
+        self.assertContains(response, "1")
 
     def test_quote_admin_changelist(self):
         """Тест страницы списка цитат в админке."""
-        url = reverse('admin:quotes_quote_changelist')
+        url = reverse("admin:quotes_quote_changelist")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Цитата для админки')
+        self.assertContains(response, "Цитата для админки")
 
     def test_quote_admin_short_text(self):
         """Тест метода short_text в админке."""
         long_text = "Это очень длинный текст, который определенно должен быть усечен в административной панели для удобства отображения."
-        long_quote = Quote.objects.create(text=long_text, source=self.source)
-        
-        url = reverse('admin:quotes_quote_changelist')
+        Quote.objects.create(text=long_text, source=self.source)
+
+        url = reverse("admin:quotes_quote_changelist")
         response = self.client.get(url)
 
         self.assertContains(response, "...")

@@ -47,6 +47,6 @@ class QuoteAdmin(admin.ModelAdmin):
 
     def short_text(self, obj):
         """Укороченный текст цитаты."""
-        return f'{obj.text[:75]}...' if len(obj.text) > 75 else obj.text
+        return f"{obj.text[:75]}..." if len(obj.text) > 75 else obj.text
 
     short_text.short_description = "Текст цитаты"

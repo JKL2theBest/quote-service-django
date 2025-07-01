@@ -1,0 +1,14 @@
+<li class="quote-list-item">
+    {% if not hide_rank %}
+    <div class="rank">{{ forloop.counter }}</div>
+    {% endif %}
+    <div class="content">
+        <blockquote>“{{ quote.text|truncatechars:150 }}”</blockquote>
+        <p class="source">— {{ quote.source.name }}</p>
+        <div class="stats">
+            <span>👍 {{ quote.likes }}</span>
+            <span>👎 {{ quote.dislikes }}</span>
+            <span>👀 {{ quote.views }}</span>
+        </div>
+    </div>
+</li>
