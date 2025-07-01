@@ -1,18 +1,9 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Случайная цитата</title>
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; background-color: #f4f4f4; color: #333; }
-        .quote-card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        blockquote { font-size: 1.5em; margin: 0; padding-bottom: 10px; border-bottom: 1px solid #eee; }
-        .source { text-align: right; font-style: italic; color: #555; margin-top: 10px; }
-        .stats { margin-top: 20px; color: #777; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Случайная цитата{% endblock %}
+
+{% block content %}
     <div class="quote-card">
         {% if quote %}
             <blockquote>
@@ -37,56 +28,11 @@
         {% endif %}
     </div>
     
-    <a href="{% url 'quotes:top_quotes' %}" style="display: block; text-align: center; margin-top: 20px;">Посмотреть топ-10 цитат</a>
-    
+    <a href="{% url 'quotes:top_quotes' %}" class="nav-link">Посмотреть топ-10 цитат</a>
+{% endblock %}
+
+{% block scripts %}
     {% if quote %}
-    <script>
-        let isRequestInProgress = false;
-
-        async function handleVote(url) {
-            if (isRequestInProgress) {
-                return;
-            }
-            isRequestInProgress = true;
-
-            const csrftoken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                        'Content-Type': 'application/json'
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data = await response.json();
-
-                document.getElementById('likes-count').textContent = data.likes;
-                document.getElementById('dislikes-count').textContent = data.dislikes;
-
-                document.getElementById('like-btn').disabled = true;
-                document.getElementById('dislike-btn').disabled = true;
-
-            } catch (error) {
-                console.error('There has been a problem with your fetch operation:', error);
-            } finally {
-                isRequestInProgress = false;
-            }
-        }
-
-        document.getElementById('like-btn').addEventListener('click', () => {
-            handleVote(document.getElementById('like-btn').dataset.url);
-        });
-
-        document.getElementById('dislike-btn').addEventListener('click', () => {
-            handleVote(document.getElementById('dislike-btn').dataset.url);
-        });
-    </script>
+        <script src="{% static 'js/main.js' %}"></script>
     {% endif %}
-</body>
-</html>
+{% endblock %}

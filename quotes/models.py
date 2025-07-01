@@ -1,12 +1,13 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 class Source(models.Model):
     """Источник цитаты (фильм, книга и т.д.)."""
+
     name = models.CharField(
-        max_length=255,
-        unique=True,
-        verbose_name="Название источника"
+        max_length=255, unique=True, verbose_name="Название источника"
     )
 
     def __str__(self):
@@ -17,30 +18,33 @@ class Source(models.Model):
         verbose_name_plural = "Источники"
 
 
+class QuoteQuerySet(models.QuerySet):
+    def update_and_get(self, **kwargs):
+        rows_updated = self.update(**kwargs)
+        if rows_updated > 0:
+            return self.first()
+        return None
+
+
 class Quote(models.Model):
     """Цитата."""
     MAX_QUOTES_PER_SOURCE = 3
-
-    text = models.TextField(
-        unique=True,
-        verbose_name="Текст цитаты"
-    )
+    text = models.TextField(unique=True, verbose_name="Текст цитаты")
     source = models.ForeignKey(
-        Source,
-        on_delete=models.CASCADE,
-        related_name="quotes",
-        verbose_name="Источник"
+        Source, on_delete=models.CASCADE, related_name="quotes", verbose_name="Источник"
     )
     weight = models.PositiveIntegerField(
         default=100,
-        help_text="Чем выше значение, тем чаще будет выпадать цитата.",
+        validators=[MinValueValidator(1), MaxValueValidator(1000)],
+        help_text="Число от 1 до 1000. Чем выше значение, тем чаще будет выпадать цитата.",
         verbose_name="Вес"
     )
     likes = models.PositiveIntegerField(default=0, verbose_name="Лайки")
     dislikes = models.PositiveIntegerField(default=0, verbose_name="Дизлайки")
     views = models.PositiveIntegerField(default=0, verbose_name="Просмотры")
-
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    objects = QuoteQuerySet.as_manager()
 
     def __str__(self):
         return f'"{self.text[:50]}..."'
@@ -52,9 +56,7 @@ class Quote(models.Model):
         if self.pk is None:
             quote_count = Quote.objects.filter(source=self.source).count()
             if quote_count >= self.MAX_QUOTES_PER_SOURCE:
-                raise ValidationError(
-                    f"Нельзя добавить больше {self.MAX_QUOTES_PER_SOURCE} цитат для одного источника."
-                )
+                raise ValidationError(f"Нельзя добавить больше {self.MAX_QUOTES_PER_SOURCE} цитат для одного источника.")
 
     def save(self, *args, **kwargs):
         """Сохранение, всегда с вызовом clean()."""
@@ -64,4 +66,4 @@ class Quote(models.Model):
     class Meta:
         verbose_name = "Цитата"
         verbose_name_plural = "Цитаты"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
