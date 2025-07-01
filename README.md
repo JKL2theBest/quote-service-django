@@ -39,8 +39,6 @@ cd quote-service-django
 python -m venv venv
 # Для Linux/macOS
 source venv/bin/activate
-# Для Windows
-# venv\Scripts\activate
 ```
 ```bash
 python -m venv venv
