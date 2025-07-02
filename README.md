@@ -34,6 +34,7 @@ git clone https://github.com/JKL2theBest/quote-service-django
 cd quote-service-django
 ```
 Создайте и активируйте виртуальное окружение:
+
 Для Linux/macOS
 ```bash
 python -m venv venv
