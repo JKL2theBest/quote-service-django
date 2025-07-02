@@ -7,19 +7,19 @@
 
     <section class="kpi-grid">
         <div class="kpi-card">
-            <span class="kpi-value">{{ total_quotes }}</span>
+            <span class="kpi-value">{{ total_quotes|default:0 }}</span>
             <span class="kpi-label">Всего цитат</span>
         </div>
         <div class="kpi-card">
-            <span class="kpi-value">{{ total_sources }}</span>
+            <span class="kpi-value">{{ total_sources|default:0 }}</span>
             <span class="kpi-label">Всего источников</span>
         </div>
         <div class="kpi-card">
-            <span class="kpi-value">{{ total_likes }}</span>
+            <span class="kpi-value">{{ total_likes|default:0 }}</span>
             <span class="kpi-label">Всего лайков</span>
         </div>
         <div class="kpi-card">
-            <span class="kpi-value">{{ total_views }}</span>
+            <span class="kpi-value">{{ total_views|default:0 }}</span>
             <span class="kpi-label">Всего просмотров</span>
         </div>
     </section>
@@ -33,22 +33,20 @@
                         {% include 'quotes/includes/quote_list_item.html' %}
                     {% endfor %}
                 </ol>
-                {% include 'quotes/includes/pagination.html' with page_obj=top_by_likes_page param_name='page_likes' %}
             {% else %}
-                <p>Цитат с лайками еще нет.</p>
+                <p>Цитат с лайками еще нет :'(</p>
             {% endif %}
         </div>
         <div class="list-column">
-            <h2>Топ-10 по просмотрам</h2>
-            {% if top_by_views %}
+            <h2>Топ по просмотрам</h2>
+            {% if top_by_views_page.object_list %}
                 <ol class="quote-list">
-                    {% for quote in top_by_views %}
+                    {% for quote in top_by_views_page %}
                         {% include 'quotes/includes/quote_list_item.html' %}
                     {% endfor %}
                 </ol>
-                {% include 'quotes/includes/pagination.html' with page_obj=top_by_views_page param_name='page_views' %}
             {% else %}
-                <p>Просмотренных цитат еще нет.</p>
+                <p>Просмотренных цитат нет =(</p>
             {% endif %}
         </div>
         <div class="list-column">
@@ -60,8 +58,20 @@
                     {% endfor %}
                 </ol>
             {% else %}
-                <p>Цитаты еще не добавлены.</p>
+                <p>Цитаты еще не добавлены o_0</p>
             {% endif %}
+        </div>
+    </section>
+
+    <section class="pagination-container">
+        <div class="pagination-wrapper">
+            {% include 'quotes/includes/pagination.html' with page_obj=top_by_likes_page param_name='page_likes' %}
+        </div>
+        <div class="pagination-wrapper">
+             {% include 'quotes/includes/pagination.html' with page_obj=top_by_views_page param_name='page_views' %}
+        </div>
+        <div class="pagination-wrapper">
+             <!-- Пустой блок для выравнивания -->
         </div>
     </section>
 

@@ -61,24 +61,28 @@ def dislike_quote(request, quote_id):
 
 def dashboard_view(request):
     """
-    Отображение дашборда.
+    Отображение дашборда со статистикой и топами цитат с пагинацией.
     """
     kpi_stats = Quote.objects.aggregate(
-        total_quotes=Count('id'),
-        total_likes=Sum('likes'),
-        total_views=Sum('views')
+        total_quotes=Count("id"), total_likes=Sum("likes"), total_views=Sum("views")
     )
     total_sources = Source.objects.count()
 
-    top_by_likes_list = Quote.objects.select_related("source").order_by("-likes")
-    top_by_views_list = Quote.objects.select_related("source").order_by("-views")
+    top_by_likes_list = (
+        Quote.objects.select_related("source").filter(likes__gt=0).order_by("-likes")
+    )
+
+    top_by_views_list = (
+        Quote.objects.select_related("source").filter(views__gt=0).order_by("-views")
+    )
+
     most_recent = Quote.objects.select_related("source").order_by("-created_at")[:5]
 
     paginator_likes = Paginator(top_by_likes_list, 10)
     paginator_views = Paginator(top_by_views_list, 10)
 
-    page_likes_num = request.GET.get('page_likes')
-    page_views_num = request.GET.get('page_views')
+    page_likes_num = request.GET.get("page_likes")
+    page_views_num = request.GET.get("page_views")
 
     try:
         top_by_likes_page = paginator_likes.page(page_likes_num)
@@ -95,13 +99,13 @@ def dashboard_view(request):
         top_by_views_page = paginator_views.page(paginator_views.num_pages)
 
     context = {
-        'total_quotes': kpi_stats.get('total_quotes', 0),
-        'total_likes': kpi_stats.get('total_likes', 0) or 0,
-        'total_views': kpi_stats.get('total_views', 0) or 0,
-        'total_sources': total_sources,
-        'top_by_likes_page': top_by_likes_page,
-        'top_by_views_page': top_by_views_page,
-        'most_recent': most_recent,
+        "total_quotes": kpi_stats.get("total_quotes", 0),
+        "total_likes": kpi_stats.get("total_likes", 0) or 0,
+        "total_views": kpi_stats.get("total_views", 0) or 0,
+        "total_sources": total_sources,
+        "top_by_likes_page": top_by_likes_page,
+        "top_by_views_page": top_by_views_page,
+        "most_recent": most_recent,
     }
 
     return render(request, "quotes/dashboard.html", context)

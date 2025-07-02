@@ -214,50 +214,104 @@ h1 {
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
 }
 
 .kpi-card {
     background-color: var(--card-bg-color);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: 8px;
+    padding: 1rem;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .kpi-value {
     display: block;
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--primary-color);
 }
 
 .kpi-label {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--secondary-text-color);
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
 }
 
 .dashboard-lists {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+@media (max-width: 992px) {
+    .dashboard-lists {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 768px) {
+    .dashboard-lists {
+        grid-template-columns: 1fr;
+    }
 }
 
 .list-column h2 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     margin-top: 0;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--primary-color);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.quote-list-item {
+    padding: 1rem;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+.quote-list-item .rank {
+    font-size: 1.5rem;
+    opacity: 0.4;
+}
+.quote-list-item blockquote {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+.quote-list-item .source {
+    font-size: 0.85rem;
+}
+.quote-list-item .stats {
+    gap: 0.75rem;
 }
 
 /* Стили для пагинации */
+.pagination-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+@media (max-width: 992px) {
+    .pagination-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 768px) {
+    .pagination-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
 .pagination {
-    margin-top: 2rem;
+    margin-top: 1rem;
     display: flex;
     justify-content: center;
 }
@@ -268,13 +322,16 @@ h1 {
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
 }
 
 .pagination-link {
     display: block;
-    padding: 0.5rem 1rem;
-    min-width: 2.5rem;
+    padding: 0.4rem 0.8rem;
+    min-width: 2rem;
+    font-size: 0.9rem;
     text-align: center;
     text-decoration: none;
     color: var(--primary-color);
