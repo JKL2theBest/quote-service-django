@@ -26,13 +26,14 @@
 
     <section class="dashboard-lists">
         <div class="list-column">
-            <h2>Топ-10 по лайкам</h2>
-            {% if top_by_likes %}
+            <h2>Топ по лайкам</h2>
+            {% if top_by_likes_page.object_list %}
                 <ol class="quote-list">
-                    {% for quote in top_by_likes %}
+                    {% for quote in top_by_likes_page %}
                         {% include 'quotes/includes/quote_list_item.html' %}
                     {% endfor %}
                 </ol>
+                {% include 'quotes/includes/pagination.html' with page_obj=top_by_likes_page param_name='page_likes' %}
             {% else %}
                 <p>Цитат с лайками еще нет.</p>
             {% endif %}
@@ -45,6 +46,7 @@
                         {% include 'quotes/includes/quote_list_item.html' %}
                     {% endfor %}
                 </ol>
+                {% include 'quotes/includes/pagination.html' with page_obj=top_by_views_page param_name='page_views' %}
             {% else %}
                 <p>Просмотренных цитат еще нет.</p>
             {% endif %}

@@ -1,0 +1,37 @@
+{% if page_obj.has_other_pages %}
+<nav class="pagination" aria-label="pagination">
+  <ul class="pagination-list">
+    {% if page_obj.has_previous %}
+      <li class="pagination-item">
+        <a class="pagination-link" href="?{{ param_name }}={{ page_obj.previous_page_number }}">« Назад</a>
+      </li>
+    {% else %}
+      <li class="pagination-item is-disabled">
+        <span class="pagination-link">« Назад</span>
+      </li>
+    {% endif %}
+
+    {% for i in page_obj.paginator.page_range %}
+      {% if page_obj.number == i %}
+        <li class="pagination-item is-current">
+          <span class="pagination-link">{{ i }}</span>
+        </li>
+      {% else %}
+        <li class="pagination-item">
+          <a class="pagination-link" href="?{{ param_name }}={{ i }}">{{ i }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="pagination-item">
+        <a class="pagination-link" href="?{{ param_name }}={{ page_obj.next_page_number }}">Вперед »</a>
+      </li>
+    {% else %}
+      <li class="pagination-item is-disabled">
+        <span class="pagination-link">Вперед »</span>
+      </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}

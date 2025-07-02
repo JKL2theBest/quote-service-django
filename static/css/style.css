@@ -254,3 +254,51 @@ h1 {
     border-bottom: 2px solid var(--primary-color);
     margin-bottom: 1.5rem;
 }
+
+/* Стили для пагинации */
+.pagination {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    min-width: 2.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--primary-color);
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+.pagination-item:not(.is-disabled) .pagination-link:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination-item.is-current .pagination-link {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    font-weight: 700;
+}
+
+.pagination-item.is-disabled .pagination-link {
+    color: #adb5bd;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+}

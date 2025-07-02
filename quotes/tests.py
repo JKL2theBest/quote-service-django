@@ -62,15 +62,20 @@ class QuoteViewTest(TestCase):
 
     def test_random_quote_view(self):
         """Тест главной страницы с данными."""
-        response = self.client.get(reverse("quotes:random_quote"))
+        Quote.objects.all().delete()
+
+        test_quote = Quote.objects.create(
+            text="Цитата с 'кавычкой'",
+            source=self.source
+        )
+        
+        response = self.client.get(reverse('quotes:random_quote'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "quotes/random_quote.html")
+        self.assertTemplateUsed(response, 'quotes/random_quote.html')
 
-        self.assertIn("quote", response.context)
-        quote_in_context = response.context["quote"]
-        self.assertIsInstance(quote_in_context, Quote)
-
-        self.assertContains(response, quote_in_context.text)
+        self.assertEqual(response.context['quote'], test_quote)
+        
+        self.assertContains(response, "Цитата с 'кавычкой'", html=True)
 
     def test_random_quote_view_no_quotes(self):
         """Тест главной страницы, когда в БД нет цитат."""
@@ -88,21 +93,17 @@ class QuoteViewTest(TestCase):
     def test_dashboard_view(self):
         """Тест страницы дашборда со статистикой."""
         self.assertGreater(Quote.objects.count(), 1)
-
-        url = reverse("quotes:dashboard")
+        url = reverse('quotes:dashboard')
         response = self.client.get(url)
-
+        
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "quotes/dashboard.html")
+        self.assertTemplateUsed(response, 'quotes/dashboard.html')
 
         expected_keys = [
-            "total_quotes",
-            "total_likes",
-            "total_views",
-            "total_sources",
-            "top_by_likes",
-            "top_by_views",
-            "most_recent",
+            'total_quotes', 'total_likes', 'total_views', 'total_sources',
+            'top_by_likes_page',
+            'top_by_views_page',
+            'most_recent'
         ]
         for key in expected_keys:
             self.assertIn(key, response.context)
@@ -211,3 +212,53 @@ class AdminPanelTest(TestCase):
         self.assertContains(response, "...")
         self.assertContains(response, long_text[:10])
         self.assertNotContains(response, long_text)
+
+
+class PaginationTest(TestCase):
+    def setUp(self):
+        Quote.objects.all().delete()
+        Source.objects.all().delete()
+        
+        self.client = Client()
+        sources = [Source.objects.create(name=f"Источник для пагинации {i}") for i in range(5)]
+        
+        for i in range(15):
+            Quote.objects.create(
+                text=f"Цитата для пагинации номер {i}",
+                source=sources[i % 5],
+                likes=i,
+            )
+
+    def test_pagination_appears_on_dashboard(self):
+        response = self.client.get(reverse('quotes:dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<nav class="pagination"')
+
+    def test_first_page_content(self):
+        response = self.client.get(reverse('quotes:dashboard'))
+        self.assertEqual(len(response.context['top_by_likes_page'].object_list), 10)
+        self.assertContains(response, "Цитата для пагинации номер 14")
+        self.assertNotContains(response, "Цитата для пагинации номер 4")
+
+    def test_second_page_content(self):
+        response = self.client.get(reverse('quotes:dashboard') + '?page_likes=2')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['top_by_likes_page'].object_list), 5)
+        self.assertContains(response, "Цитата для пагинации номер 4")
+        self.assertNotContains(response, "Цитата для пагинации номер 5")
+
+    def test_invalid_page_number_handled(self):
+        response = self.client.get(reverse('quotes:dashboard') + '?page_likes=abc')
+        self.assertEqual(response.context['top_by_likes_page'].number, 1)
+
+    def test_out_of_range_page_handled(self):
+        response = self.client.get(reverse('quotes:dashboard') + '?page_likes=999')
+        self.assertEqual(response.context['top_by_likes_page'].number, 2)
+
+    def test_out_of_range_page_for_views_list(self):
+        quote = Quote.objects.first()
+        quote.views = 10
+        quote.save()
+        
+        response = self.client.get(reverse('quotes:dashboard') + '?page_views=999')
+        self.assertEqual(response.context['top_by_views_page'].number, 2)

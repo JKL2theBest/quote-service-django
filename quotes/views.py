@@ -5,6 +5,7 @@ from .models import Quote, Source
 from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 @ensure_csrf_cookie
@@ -60,25 +61,47 @@ def dislike_quote(request, quote_id):
 
 def dashboard_view(request):
     """
-    Отображение дашборда со статистикой и топами цитат.
+    Отображение дашборда.
     """
     kpi_stats = Quote.objects.aggregate(
-        total_quotes=Count("id"), total_likes=Sum("likes"), total_views=Sum("views")
+        total_quotes=Count('id'),
+        total_likes=Sum('likes'),
+        total_views=Sum('views')
     )
     total_sources = Source.objects.count()
 
-    top_by_likes = Quote.objects.select_related("source").order_by("-likes")[:10]
-    top_by_views = Quote.objects.select_related("source").order_by("-views")[:10]
+    top_by_likes_list = Quote.objects.select_related("source").order_by("-likes")
+    top_by_views_list = Quote.objects.select_related("source").order_by("-views")
     most_recent = Quote.objects.select_related("source").order_by("-created_at")[:5]
 
+    paginator_likes = Paginator(top_by_likes_list, 10)
+    paginator_views = Paginator(top_by_views_list, 10)
+
+    page_likes_num = request.GET.get('page_likes')
+    page_views_num = request.GET.get('page_views')
+
+    try:
+        top_by_likes_page = paginator_likes.page(page_likes_num)
+    except PageNotAnInteger:
+        top_by_likes_page = paginator_likes.page(1)
+    except EmptyPage:
+        top_by_likes_page = paginator_likes.page(paginator_likes.num_pages)
+
+    try:
+        top_by_views_page = paginator_views.page(page_views_num)
+    except PageNotAnInteger:
+        top_by_views_page = paginator_views.page(1)
+    except EmptyPage:
+        top_by_views_page = paginator_views.page(paginator_views.num_pages)
+
     context = {
-        "total_quotes": kpi_stats.get("total_quotes", 0),
-        "total_likes": kpi_stats.get("total_likes", 0) or 0,
-        "total_views": kpi_stats.get("total_views", 0) or 0,
-        "total_sources": total_sources,
-        "top_by_likes": top_by_likes,
-        "top_by_views": top_by_views,
-        "most_recent": most_recent,
+        'total_quotes': kpi_stats.get('total_quotes', 0),
+        'total_likes': kpi_stats.get('total_likes', 0) or 0,
+        'total_views': kpi_stats.get('total_views', 0) or 0,
+        'total_sources': total_sources,
+        'top_by_likes_page': top_by_likes_page,
+        'top_by_views_page': top_by_views_page,
+        'most_recent': most_recent,
     }
 
     return render(request, "quotes/dashboard.html", context)
