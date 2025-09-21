@@ -2,7 +2,7 @@
 
 Веб-приложение на Django, которое отображает случайные цитаты из фильмов и книг.
 
-**Ссылка на развернутое приложение:** [https://JKL2.pythonanywhere.com](https://JKL2.pythonanywhere.com)
+**Ссылка на развернутое приложение:** [https://JKL2.pythonanywhere.com](https://JKL2.pythonanywhere.com) - *уже неактульно*
 
 ## Основные возможности
 
